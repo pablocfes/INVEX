@@ -3,13 +3,21 @@
 *.pot
 *.pyc
 __pycache__/
-*/migrations/*
-**/migrations/*
+
 */logs/*
 staticfiles/*
 db.sqlite3
 media
 .idea
+
+**/__pycache__/
+
+# Ignore migration files except for __init__.py
+**/migrations/*.py
+**/migrations/*.pyc
+
+# do not ignore the migrations __init__.py files
+!**/migrations/__init__.py
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.
@@ -53,6 +61,7 @@ cmake-build-debug/
 ## File-based project format:
 *.iws
 
+.vscode
 ## Plugin-specific files:
 
 # IntelliJ
