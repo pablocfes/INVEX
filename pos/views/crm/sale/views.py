@@ -183,9 +183,9 @@ class SaleCreateView(PermissionMixin, CreateView):
                     user.groups.add(group)
 
                     data = Client.objects.get(pk=client.id).toJSON()
-            elif action == 'create_proforma':
+            elif action == 'create_cotizacion':
                 items = json.loads(request.POST['items'])
-                template = get_template('crm/sale/print/proforma.html')
+                template = get_template('crm/sale/print/cotizacion.html')
                 html_template = template.render({'sale': items, 'company': Company.objects.first()}).encode(encoding="UTF-8")
                 url_css = os.path.join(settings.BASE_DIR, 'static/lib/bootstrap-4.6.0/css/bootstrap.min.css')
                 pdf_file = HTML(string=html_template, base_url=request.build_absolute_uri()).write_pdf(

@@ -1,0 +1,74 @@
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      # Variables de entorno para configurar la DB
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      # Persistencia de datos de la DB
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Opcional: Expone el puerto de la DB al host (útil para pgAdmin)
+      - "5432:5432"
+
+  web:
+    build: .
+    # Reemplaza 'nombre_del_proyecto' con el nombre de tu carpeta de proyecto Django
+    container_name: django_app
+    entrypoint: ["/app/entrypoint.sh"]
+    volumes:
+      # Mapea el código de tu proyecto al contenedor
+      - .:/app
+      # Volumen para archivos estáticos, que será compartido con Nginx
+      - static_volume:/app/static
+      - media_volume:/app/media
+    environment:
+      # Las variables de entorno serán leídas desde un archivo .env
+      SECRET_KEY: ${SECRET_KEY}
+      DB_HOST: db  # ¡Importante! El nombre del servicio de la DB es el HOST
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DJANGO_WSGI_MODULE: ${DJANGO_WSGI_MODULE:-config.wsgi}
+      DB_PASSWORD: ${DB_PASSWORD}
+      AUTO_MAKEMIGRATIONS: "1"
+      COLLECTSTATIC: "0"
+      TENANT_SCHEMA: "demo"
+      TENANT_NAME: "Demo Company"
+      TENANT_DOMAIN: "demo.localhost"
+      TENANT_TRIAL_DAYS: "30"
+    env_file:
+      - ./.env
+    depends_on:
+      # Asegura que la DB inicie antes que la app
+      - db
+    expose:
+      # Expone el puerto 8000, pero solo internamente a otros servicios (Nginx)
+      - 8000
+
+    ports:
+      # Expone el puerto 80 al host para acceder a la app
+      - "8000:8000"
+
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: nginx_proxy
+  #   volumes:
+  #     # Mapea el archivo de configuración de Nginx
+  #     - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+  #     # Comparte los mismos volúmenes estáticos y de media con la app
+  #     - static_volume:/usr/src/app/static
+  #     - media_volume:/usr/src/app/media
+  #   ports:
+  #     # Expone el puerto 80 al host para acceder a la app
+  #     - "80:80"
+  #   depends_on:
+  #     - web
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

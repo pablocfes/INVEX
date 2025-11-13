@@ -30,32 +30,46 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
-DJANGO_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+SHARED_APPS = [
+    "django_tenants",                 # debe ir primero
+    "django.contrib.contenttypes",    # requerido por tenants
+    "django.contrib.staticfiles",
+    "widget_tweaks",
+    "django_user_agents",
+    "core",                           # aquí van Cliente (Tenant) y Dominio
 ]
 
-THIRD_PARTY_APPS = [
-    'widget_tweaks',
-    'django_user_agents',
+# apps por-tenant (viven dentro de cada schema)
+TENANT_APPS = [
+    "django.contrib.auth",
+    "django.contrib.admin",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+
+    # tus apps de negocio por-tenant
+    "security",
+    "user",        # tu AUTH_USER_MODEL
+    "login",       # si este módulo muestra login dentro del subdominio del tenant
+    "dashboard",
+    "pos",
+    "reports",
 ]
 
-LOCAL_APPS = [
-    'security',
-    'user',
-    'login',
-    'dashboard',
-    'pos',
-    'reports',
-]
+INSTALLED_APPS = SHARED_APPS + [a for a in TENANT_APPS if a not in SHARED_APPS]
 
-INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS + THIRD_PARTY_APPS
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+PUBLIC_SCHEMA_NAME = "public"
+TENANT_NOT_FOUND_EXCEPTION = False
+TENANT_MODEL = "core.Cliente"
+TENANT_DOMAIN_MODEL = "core.Dominio"
+
+ROOT_URLCONF = "core.urls_tenants"        # para subdominios (tenants)
+PUBLIC_SCHEMA_URLCONF = "core.urls_public"  # para dominio raíz (public)
+
+AUTH_USER_MODEL = "user.User"
 
 MIDDLEWARE = [
+    'django_tenants.middleware.main.TenantMainMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -67,7 +81,8 @@ MIDDLEWARE = [
     'django_user_agents.middleware.UserAgentMiddleware',
 ]
 
-ROOT_URLCONF = 'config.urls'
+MAIN_DOMAIN = os.getenv("MAIN_DOMAIN", "localhost")
+
 
 TEMPLATES = [
     {
@@ -91,7 +106,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0.2/ref/settings/#databases
 
-DATABASES = db.SQLITE
+DATABASES = db.POSTGRESQL
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0.2/ref/settings/#auth-password-validators
@@ -147,7 +162,6 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 LOGIN_URL = '/login/'
 
-AUTH_USER_MODEL = 'user.User'
 
 # Email
 

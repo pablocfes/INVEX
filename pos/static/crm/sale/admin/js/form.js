@@ -897,14 +897,14 @@ $(function () {
             return validate_decimals($(this), e);
         });
 
-    $('.btnProforma').on('click', function () {
+    $('.btncotizacion').on('click', function () {
         if (sale.details.products.length === 0) {
-            message_error('Debe tener al menos un item en el detalle para poder crear una proforma');
+            message_error('Debe tener al menos un item en el detalle para poder crear una cotizacion');
             return false;
         }
 
         var parameters = {
-            'action': 'create_proforma',
+            'action': 'create_cotizacion',
             'items': JSON.stringify(sale.details)
         };
 
