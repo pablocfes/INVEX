@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-    <form id="frmSale" method="post" data-url="{% url 'sale_admin_list' %}" autocomplete="off">
+    <form id="frmSale" method="post" data-url="{% url 'sale_admin_create' %}" autocomplete="off">
         <div class="card {{ dashboard.card }}">
             <div class="card-header">
                 <h3 class="card-title">
@@ -81,6 +81,18 @@
                             <div class="form-group">
                                 <label>{{ form.cash.label }}:</label>
                                 {{ form.cash }}
+
+                                <div class="mt-2 d-flex flex-wrap cash-quick-buttons">
+                                    <button type="button" class="btn btn-light btn-sm mr-1 mb-1 btn-cash-quick" data-amount="2000">$2.000</button>
+                                    <button type="button" class="btn btn-light btn-sm mr-1 mb-1 btn-cash-quick" data-amount="5000">$5.000</button>
+                                    <button type="button" class="btn btn-light btn-sm mr-1 mb-1 btn-cash-quick" data-amount="10000">$10.000</button>
+                                    <button type="button" class="btn btn-light btn-sm mr-1 mb-1 btn-cash-quick" data-amount="20000">$20.000</button>
+                                    <button type="button" class="btn btn-light btn-sm mr-1 mb-1 btn-cash-quick" data-amount="50000">$50.000</button>
+                                    <button type="button" class="btn btn-light btn-sm mr-1 mb-1 btn-cash-quick" data-amount="100000">$100.000</button>
+                                    <button type="button" class="btn btn-success btn-sm mr-1 mb-1 btn-cash-exact">Valor exacto</button>
+                                    <button type="button" class="btn btn-danger btn-sm mr-1 mb-1 btn-cash-clear">Borrar</button>
+                                </div>
+                                <small class="text-muted">Toca los botones para ir sumando al efectivo recibido.</small>
                             </div>
                         </div>
                         <div class="col-lg-6">
@@ -284,4 +296,14 @@
             sale.listProducts();
         });
     </script>
+<style>
+  .cash-quick-buttons .btn-cash-quick {
+      font-weight: 600;
+      color: #963f3fff;
+      border: 1px solid #ccc;
+      transition: background-color 0.3s, color 0.3s;
+      background-color: #709cc9ff;
+
+  }
+</style>
 {% endblock %}

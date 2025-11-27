@@ -35,15 +35,22 @@ class ProductListView(PermissionMixin, TemplateView):
                     excel = workbook[workbook.sheetnames[0]]
                     for row in range(2, excel.max_row + 1):
                         product = Product()
-                        id = int(excel.cell(row=row, column=1).value)
-                        if Product.objects.filter(id=id).exists():
-                            product = Product.objects.get(pk=id)
+                        code = excel.cell(row=row, column=1).value
+
+                        if not code:
+                            continue
+
+                        if Product.objects.filter(code=code).exists():
+                            product = Product.objects.get(code=code)
+
+                        product.code = code
                         product.name = excel.cell(row=row, column=2).value
                         product.category = product.get_or_create_category(name=excel.cell(row=row, column=3).value)
                         product.price = float(excel.cell(row=row, column=4).value)
                         product.pvp = float(excel.cell(row=row, column=5).value)
                         product.stock = int(excel.cell(row=row, column=6).value)
-                        product.inventoried = excel.cell(row=row, column=7).value.lower() == 'si'
+                        product.inventoried = str(excel.cell(row=row, column=7).value.lower()) in ['si', 'sí']
+
                         product.save()
             else:
                 data['error'] = 'No ha ingresado una opción'

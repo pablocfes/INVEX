@@ -4,20 +4,34 @@ var select_client, select_payment_condition, select_payment_method;
 var input_birthdate, input_cash, input_card_number, input_amount_debited, input_titular, input_change, input_search_products, input_end_credit, inputs_vents;
 var tblSearchProducts, tblProducts;
 
+function formatCurrency(number) {
+    return new Intl.NumberFormat('es-CO', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(number);
+}
+
+function parseMoney(val) {
+    if (!val) return 0;
+    // Quitar puntos de miles y cambiar coma por punto (por si acaso)
+    val = val.toString().replace(/\./g, '').replace(',', '.');
+    var num = parseFloat(val);
+    return isNaN(num) ? 0 : num;
+}
 var sale = {
     details: {
-        subtotal: 0.00,
-        iva: 0.00,
-        total_iva: 0.00,
-        dscto: 0.00,
-        total_dscto: 0.00,
-        total: 0.00,
-        cash: 0.00,
-        change: 0.00,
+        subtotal: 0,
+        iva: 0,
+        total_iva: 0,
+        dscto: 0,
+        total_dscto: 0,
+        total: 0,
+        cash: 0,
+        change: 0,
         products: [],
     },
     calculateInvoice: function () {
-        var total = 0.00;
+        var total = 0;
         this.details.products.forEach(function (value, index, array) {
             value.cant = parseInt(value.cant);
             value.subtotal = value.cant * parseFloat(value.price_current);
@@ -25,20 +39,20 @@ var sale = {
             value.total = value.subtotal - value.total_dscto;
             total += value.total;
         });
-
-        sale.details.subtotal = total;
+        
+        sale.details.subtotal = total ;
         sale.details.dscto = parseFloat($('input[name="dscto"]').val());
         sale.details.total_dscto = sale.details.subtotal * (sale.details.dscto / 100);
         sale.details.total_iva = sale.details.subtotal * (sale.details.iva / 100);
-        sale.details.total = sale.details.subtotal + sale.details.total_iva - sale.details.total_dscto;
-        sale.details.total = parseFloat(sale.details.total.toFixed(2));
+        sale.details.total = sale.details.subtotal - sale.details.total_dscto;
+        sale.details.total = parseFloat(sale.details.total);
 
-        $('input[name="subtotal"]').val(sale.details.subtotal.toFixed(2));
-        $('input[name="iva"]').val(sale.details.iva.toFixed(2));
-        $('input[name="total_iva"]').val(sale.details.total_iva.toFixed(2));
-        $('input[name="total_dscto"]').val(sale.details.total_dscto.toFixed(2));
-        $('input[name="total"]').val(sale.details.total.toFixed(2));
-        $('input[name="amount"]').val(sale.details.total.toFixed(2));
+        $('input[name="subtotal"]').val(formatCurrency(sale.details.subtotal));
+        $('input[name="iva"]').val(formatCurrency(sale.details.iva));
+        $('input[name="total_iva"]').val(formatCurrency(sale.details.total_iva));
+        $('input[name="total_dscto"]').val(formatCurrency(sale.details.total_dscto));
+        $('input[name="total"]').val(formatCurrency(sale.details.total));
+        $('input[name="amount"]').val(formatCurrency(sale.details.total));
 
         var method_payment = select_payment_method.val();
         if (method_payment === 'efectivo') {
@@ -101,7 +115,7 @@ var sale = {
                     targets: [-1, -2, -4, -5],
                     class: 'text-center',
                     render: function (data, type, row) {
-                        return '$' + parseFloat(data).toFixed(2);
+                        return '$' + formatCurrency(parseFloat(data)); // Cambio aquí
                     }
                 },
                 {
@@ -127,7 +141,7 @@ var sale = {
 
                 tr.find('input[name="dscto_unitary"]')
                     .TouchSpin({
-                        min: 0.00,
+                        min: 0,
                         max: 100,
                         step: 0.01,
                         decimals: 2,
@@ -190,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                     validators: {
                         notEmpty: {},
                         stringLength: {
-                            min: 10
+                            min: 7
                         },
                         digits: {},
                         remote: {
@@ -334,16 +348,18 @@ document.addEventListener('DOMContentLoaded', function (e) {
 
 document.addEventListener('DOMContentLoaded', function (e) {
     function validateChange() {
-        var cash = parseFloat(input_cash.val())
+        var cash = parseMoney(input_cash.val());   // 👈 aquí el cambio
         var method_payment = select_payment_method.val();
-        var total = parseFloat(sale.details.total);
+        var total = parseFloat(sale.details.total); // este ya es numérico interno
         if (method_payment === 'efectivo') {
             if (cash < total) {
                 return {valid: false, message: 'El efectivo debe ser mayor o igual al total a pagar'};
             }
+        } else if (method_payment === 'tarjeta_debito_credito') {
+            input_amount_debited.val(total);
         } else if (method_payment === 'efectivo_tarjeta') {
             var amount_debited = (total - cash);
-            input_amount_debited.val(amount_debited.toFixed(2));
+            input_amount_debited.val(amount_debited);
         }
         return {valid: true};
     }
@@ -446,8 +462,8 @@ document.addEventListener('DOMContentLoaded', function (e) {
                         notEmpty: {},
                         numeric: {
                             message: 'El valor no es un número',
-                            thousandsSeparator: '',
-                            decimalSeparator: '.'
+                            thousandsSeparator: '.',
+                            decimalSeparator: ','
                         }
                     }
                 },
@@ -491,19 +507,36 @@ document.addEventListener('DOMContentLoaded', function (e) {
             }
         })
         .on('core.form.valid', function () {
+
+            // 1) Leer valores como los ve el usuario
+            var rawCash = parseMoney(input_cash.val());               // ej. "100.000" -> 100000
+            var rawChange = parseMoney(input_change.val());
+            var rawAmountDebited = parseMoney(input_amount_debited.val());
+
+            // 2) Crear el FormData desde el formulario
             var parameters = new FormData($(fvSale.form)[0]);
+
+            // 3) Sobrescribir los campos de dinero para que viajen “limpios”
+            parameters.set('cash', String(rawCash));
+            parameters.set('change', String(rawChange));
+            parameters.set('amount_debited', String(rawAmountDebited));
+
+            // 4) Lo que ya tenías
             parameters.append('payment_method', select_payment_method.val());
             ['input_search_products', 'cant', 'price_current', 'dscto_unitary'].forEach(function (value) {
                 parameters.delete(value)
             });
+
             if (sale.details.products.length === 0) {
                 message_error('Debe tener al menos un item en el detalle de la venta');
                 $('.nav-tabs a[href="#menu1"]').tab('show');
                 return false;
             }
             parameters.append('products', JSON.stringify(sale.details.products));
+
             let urlrefresh = fvSale.form.getAttribute('data-url');
-            submit_formdata_with_ajax('Notificación',
+            submit_formdata_with_ajax(
+                'Notificación',
                 '¿Estas seguro de realizar la siguiente acción?',
                 pathname,
                 parameters,
@@ -517,6 +550,7 @@ document.addEventListener('DOMContentLoaded', function (e) {
                 },
             );
         });
+
 });
 
 $(function () {
@@ -589,15 +623,15 @@ $(function () {
             var tr = tblProducts.cell($(this).closest('td, li')).index();
             sale.details.products[tr.row].cant = parseInt($(this).val());
             sale.calculateInvoice();
-            $('td:eq(-4)', tblProducts.row(tr.row).node()).html('$' + sale.details.products[tr.row].subtotal.toFixed(2));
-            $('td:last', tblProducts.row(tr.row).node()).html('$' + sale.details.products[tr.row].total.toFixed(2));
+            $('td:eq(-4)', tblProducts.row(tr.row).node()).html('$' + formatCurrency(sale.details.products[tr.row].subtotal)); // Cambio aquí
+            $('td:last', tblProducts.row(tr.row).node()).html('$' + formatCurrency(sale.details.products[tr.row].total)); // Cambio aquí
         })
         .on('change', 'input[name="dscto_unitary"]', function () {
             var tr = tblProducts.cell($(this).closest('td, li')).index();
             sale.details.products[tr.row].dscto = parseFloat($(this).val());
             sale.calculateInvoice();
-            $('td:eq(-2)', tblProducts.row(tr.row).node()).html('$' + sale.details.products[tr.row].total_dscto.toFixed(2));
-            $('td:last', tblProducts.row(tr.row).node()).html('$' + sale.details.products[tr.row].total.toFixed(2));
+            $('td:eq(-2)', tblProducts.row(tr.row).node()).html('$' + formatCurrency(sale.details.products[tr.row].total_dscto)); // Cambio aquí
+            $('td:last', tblProducts.row(tr.row).node()).html('$' + formatCurrency(sale.details.products[tr.row].total)); // Cambio aquí
         })
         .on('click', 'a[rel="remove"]', function () {
             var tr = tblProducts.cell($(this).closest('td, li')).index();
@@ -636,7 +670,7 @@ $(function () {
                     targets: [-3, -4],
                     class: 'text-center',
                     render: function (data, type, row) {
-                        return '$' + parseFloat(data).toFixed(2);
+                        return '$' + formatCurrency(parseFloat(data)); // Cambio aquí
                     }
                 },
                 {
@@ -780,7 +814,7 @@ $(function () {
         var id = $(this).val();
         sale.setOptionsFields([{'index': 0, 'enable': false}, {'index': 1, 'enable': false}, {'index': 2, 'enable': false}]);
         input_cash.val(input_cash.val());
-        input_amount_debited.val('0.00');
+        input_amount_debited.val('0');
         switch (id) {
             case "efectivo":
                 fvSale.enableValidator('change');
@@ -792,17 +826,17 @@ $(function () {
                 break;
             case "tarjeta_debito_credito":
                 fvSale.disableValidator('change');
-                fvSale.enableValidator('card_number');
+                fvSale.disableValidator('card_number');
                 fvSale.enableValidator('titular');
                 fvSale.enableValidator('amount_debited');
-                input_amount_debited.val(sale.details.total.toFixed(2));
+                input_amount_debited.val(sale.details.total);
                 input_titular.val('');
                 sale.setOptionsFields([{'index': 1, 'enable': true}]);
                 break;
             case "efectivo_tarjeta":
-                input_change.val('0.00');
+                input_change.val('0');
                 fvSale.enableValidator('change');
-                fvSale.enableValidator('card_number');
+                fvSale.disableValidator('card_number');
                 fvSale.enableValidator('titular');
                 fvSale.enableValidator('amount_debited');
                 input_cash.trigger("touchspin.updatesettings", {max: sale.details.total});
@@ -813,36 +847,88 @@ $(function () {
 
     input_cash
         .TouchSpin({
-            min: 0.00,
+            min: 0,
             max: 100000000,
-            step: 0.01,
-            decimals: 2,
+            step: 1000,    // si quieres de mil en mil
+            decimals: 0,
             boostat: 5,
             verticalbuttons: true,
             maxboostedstep: 10,
         })
         .off('change').on('change touchspin.on.min touchspin.on.max', function () {
-        var paymentmethod = select_payment_method.val();
-        fvSale.revalidateField('cash');
-        var total = parseFloat(sale.details.total);
-        switch (paymentmethod) {
-            case "efectivo_tarjeta":
-                fvSale.revalidateField('amount_debited');
-                fvSale.revalidateField('change');
-                //input_change.val('0.00');
-                break;
-            case "efectivo":
-                var cash = parseFloat($(this).val());
-                var change = cash - total;
-                input_change.val(change.toFixed(2));
-                fvSale.revalidateField('change');
-                break;
-        }
-        return false;
-    })
+            var paymentmethod = select_payment_method.val();
+            fvSale.revalidateField('cash');
+
+            var total = parseFloat(sale.details.total);
+
+            switch (paymentmethod) {
+                case "efectivo_tarjeta":
+                    fvSale.revalidateField('amount_debited');
+                    fvSale.revalidateField('change');
+                    input_change.val('0');
+                    break;
+                case "efectivo":
+                    // 👇 ahora usamos parseMoney para interpretar "10.000" como 10000
+                    var cash = parseMoney($(this).val());
+                    var change = cash - total;
+
+                    input_change.val(formatCurrency(change));
+                    fvSale.revalidateField('change');
+                    break;
+            }
+            return false;
+        })
         .on('keypress', function (e) {
             return validate_decimals($(this), e);
         });
+
+    $('.btn-cash-quick').on('click', function () {
+            var extra = parseMoney($(this).data('amount'));  // ya es entero
+            var current = parseMoney(input_cash.val());
+            var newVal = current + extra;
+
+            // mostramos con puntos de miles
+            input_cash.val(formatCurrency(newVal));
+            input_cash.trigger('change');
+        });
+
+    $('.btn-cash-exact').on('click', function () {
+        // Solo tiene sentido en efectivo / efectivo+tarjeta
+        var paymentmethod = select_payment_method.val();
+        if (paymentmethod !== 'efectivo' && paymentmethod !== 'efectivo_tarjeta') {
+            return;
+        }
+
+        // Leemos el cambio actual (puede ser "-25.000")
+        var changeVal = parseMoney(input_change.val());
+
+        // Si no es negativo, no hay nada que completar
+        if (changeVal >= 0) {
+            return;
+        }
+
+        // Lo que falta por pagar es el valor absoluto del cambio
+        var falta = Math.abs(changeVal);
+
+        // Efectivo actual
+        var currentCash = parseMoney(input_cash.val());
+
+        // Nuevo efectivo = lo que ya hay + lo que falta
+        var newCash = currentCash + falta;
+
+        // Lo mostramos con separador de miles
+        input_cash.val(formatCurrency(newCash));
+
+        // Disparamos el change para que se recalculen cambio y demás
+        input_cash.trigger('change');
+    });
+
+    // Botón: Borrar efectivo
+    $('.btn-cash-clear').on('click', function () {
+        input_cash.val('0');
+        input_cash.trigger('change');  // esto deja cambio/amount_debited coherentes
+    });
+
 
     input_card_number
         .on('keypress', function (e) {
@@ -878,7 +964,7 @@ $(function () {
 
     $('input[name="dscto"]')
         .TouchSpin({
-            min: 0.00,
+            min: 0,
             max: 100,
             step: 0.01,
             decimals: 2,
@@ -889,7 +975,7 @@ $(function () {
         .on('change touchspin.on.min touchspin.on.max', function () {
             var dscto = $(this).val();
             if (dscto === '') {
-                $(this).val('0.00');
+                $(this).val('0');
             }
             sale.calculateInvoice();
         })

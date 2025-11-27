@@ -125,6 +125,7 @@ class Product(models.Model):
     def toJSON(self):
         item = model_to_dict(self)
         item['full_name'] = self.get_full_name()
+        item['stock'] = self.stock
         item['category'] = self.category.toJSON()
         item['price'] = f'{self.price:.2f}'
         item['price_promotion'] = f'{self.get_price_promotion():.2f}'
@@ -344,16 +345,21 @@ class Sale(models.Model):
 
     def calculate_invoice(self):
         subtotal = 0.00
+
         for i in self.saledetail_set.filter():
             i.subtotal = float(i.price) * int(i.cant)
             i.total_dscto = float(i.dscto) * float(i.subtotal)
             i.total = i.subtotal - i.total_dscto
             i.save()
             subtotal += i.total
-        self.subtotal = subtotal
-        self.total_iva = self.subtotal * float(self.iva)
-        self.total_dscto = self.subtotal * float(self.dscto)
-        self.total = float(self.subtotal) - float(self.total_dscto) + float(self.total_iva)
+        
+        total_iva = subtotal * float(self.iva)
+
+        self.subtotal = subtotal - total_iva
+        self.total_iva = subtotal * float(self.iva)
+        self.total_dscto = subtotal * float(self.dscto)
+        self.total = float(self.subtotal) - float(self.total_dscto) + float(total_iva)
+
         self.save()
 
     def delete(self, using=None, keep_parents=False):

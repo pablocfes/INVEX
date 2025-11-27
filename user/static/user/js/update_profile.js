@@ -53,10 +53,6 @@ document.addEventListener('DOMContentLoaded', function (event) {
                         stringLength: {
                             min: 3,
                         },
-                        regexp: {
-                            regexp: /^[a-z0-9_-]{3,16}$/i,
-                            message: 'El username debe estar formado por letras y números'
-                        },
                         remote: {
                             url: pathname,
                             data: function () {

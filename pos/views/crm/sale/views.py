@@ -55,7 +55,7 @@ class SaleCreateView(PermissionMixin, CreateView):
     model = Sale
     template_name = 'crm/sale/admin/create.html'
     form_class = SaleForm
-    success_url = reverse_lazy('sale_admin_list')
+    success_url = reverse_lazy('sale_admin_create')
     permission_required = 'add_sale'
 
     def get_form(self, form_class=None):
@@ -111,11 +111,11 @@ class SaleCreateView(PermissionMixin, CreateView):
                         ctascollect.saldo = sale.total
                         ctascollect.save()
                     elif sale.payment_condition == PAYMENT_CONDITION[0][0]:
-                        if sale.payment_method == PAYMENT_CONDITION[0][0]:
+                        if sale.payment_method == PAYMENT_METHOD[0][0]:
                             sale.cash = float(request.POST['cash'])
                             sale.change = float(sale.cash) - sale.total
                             sale.save()
-                        elif sale.payment_method == PAYMENT_CONDITION[1][0]:
+                        elif sale.payment_method == PAYMENT_METHOD[1][0]:
                             sale.card_number = request.POST['card_number']
                             sale.titular = request.POST['titular']
                             sale.amount_debited = float(request.POST['amount_debited'])

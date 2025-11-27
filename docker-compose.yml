@@ -20,6 +20,8 @@ services:
     # Reemplaza 'nombre_del_proyecto' con el nombre de tu carpeta de proyecto Django
     container_name: django_app
     entrypoint: ["/app/entrypoint.sh"]
+    tty: true
+    stdin_open: true
     volumes:
       # Mapea el código de tu proyecto al contenedor
       - .:/app

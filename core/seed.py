@@ -449,6 +449,19 @@ def run_initial_tenant_seed(user: User):
     print(f'insertado {module.name}')
 
     module = Module()
+    module.name = 'Registrar Venta'
+    module.url = '/pos/crm/sale/admin/add/'
+    module.is_active = True
+    module.is_vertical = False
+    module.is_visible = True
+    module.icon = 'fa-solid fa-cash-register'
+    module.description = 'Permite registrar venta'
+    module.save()
+    module.permits.add(Permission.objects.get(codename='add_sale'))
+    print(f'insertado {module.name}')
+
+
+    module = Module()
     module.name = 'Editar perfil'
     module.url = '/user/update/profile/'
     module.is_active = True
@@ -524,7 +537,7 @@ def run_initial_tenant_seed(user: User):
     usuario_cliente = User()
     usuario_cliente.names = 'Cliente Generico'
     usuario_cliente.username = 'cliente_generico'
-    usuario_cliente.dni = ''.join(random.choices(numbers, k=10))
+    usuario_cliente.dni = '2222222222'
     usuario_cliente.email = ''
     usuario_cliente.is_active = True
     usuario_cliente.is_superuser = False
