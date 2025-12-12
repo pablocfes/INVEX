@@ -1,14 +1,14 @@
 from django import forms
 
 from user.models import User
-
+from django.contrib.auth.forms import AuthenticationForm
 
 class ResetPasswordForm(forms.Form):
     username = forms.CharField(widget=forms.TextInput(attrs={
         'placeholder': 'Ingrese un username',
         'class': 'form-control',
         'autocomplete': 'off'
-    }), label='Usuario')
+    }), label='Email')
 
     def clean(self):
         cleaned = super().clean()
@@ -42,3 +42,22 @@ class UpdatePasswordForm(forms.Form):
         if password != confirm_password:
             raise forms.ValidationError('Las contraseñas deben ser iguales')
         return cleaned
+
+
+class AuthenticationFormV2(AuthenticationForm):
+    """
+    Base class for authenticating users. Extend this to get a form that accepts
+    username/password logins.
+    """
+   
+    def __init__(self, request=None, *args, **kwargs):
+        """
+        The 'request' parameter is set for custom auth use by subclasses.
+        The form data comes in via the standard 'data' kwarg.
+        """
+        self.request = request
+        self.user_cache = None
+        super().__init__(*args, **kwargs)
+
+
+        self.fields['username'].label = "Email"

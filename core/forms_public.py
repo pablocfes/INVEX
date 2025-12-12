@@ -1,6 +1,9 @@
 from django import forms
 from core.models import Cliente
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
 import re
+
 
 class RegisterTenantForm(forms.Form):
     full_name = forms.CharField(
@@ -110,3 +113,4 @@ class RegisterTenantForm(forms.Form):
             self.add_error("password2", "Las contraseñas no coinciden.")
 
         return cleaned
+    

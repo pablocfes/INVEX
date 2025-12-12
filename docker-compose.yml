@@ -38,9 +38,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       AUTO_MAKEMIGRATIONS: "1"
       COLLECTSTATIC: "0"
-      TENANT_SCHEMA: "demo"
-      TENANT_NAME: "Demo Company"
-      TENANT_DOMAIN: "demo.localhost"
       TENANT_TRIAL_DAYS: "30"
     env_file:
       - ./.env

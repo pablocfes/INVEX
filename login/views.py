@@ -13,13 +13,13 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, RedirectView, TemplateView
 
 from config import settings
-from login.forms import ResetPasswordForm, UpdatePasswordForm
+from login.forms import ResetPasswordForm, UpdatePasswordForm, AuthenticationFormV2
 from security.models import AccessUsers
 from user.models import User
 
 
 class LoginAuthView(LoginView):
-    form_class = AuthenticationForm
+    form_class = AuthenticationFormV2
     template_name = 'login/login.html'
 
     def get_form(self, form_class=None):

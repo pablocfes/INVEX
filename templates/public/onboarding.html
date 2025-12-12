@@ -1,0 +1,401 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Invex - Tu espacio de trabajo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-soft: #0f172a;
+      --primary: #22c55e;
+      --primary-soft: rgba(34,197,94,0.14);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --radius-xl: 18px;
+      --radius-full: 999px;
+    }
+
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020817 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* Header */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-pill {
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .nav-links a:hover { color: var(--primary); }
+
+    .nav-cta {
+      padding: 7px 16px;
+      border-radius: var(--radius-full);
+      background: var(--primary);
+      color: #020817;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(260px, 2.6fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: rgba(148,163,253,0.06);
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .hero-kicker span {
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-size: clamp(26px, 4vw, 34px);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    .hero h1 span {
+      color: var(--primary);
+    }
+
+    .hero p {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 470px;
+      margin-bottom: 20px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .btn-primary {
+      padding: 9px 20px;
+      border-radius: var(--radius-full);
+      background: var(--primary);
+      color: #020817;
+      font-weight: 600;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-ghost {
+      padding: 9px 14px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(148,163,253,0.28);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .btn-ghost[disabled] {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .hero-note {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .highlight {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .hero-right {
+      background: radial-gradient(circle at top, rgba(34,197,94,0.14), transparent),
+                  #020817;
+      border-radius: var(--radius-xl);
+      padding: 14px 14px 14px;
+      border: 1px solid rgba(148,163,253,0.14);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hero-right-title {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .hero-metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .hero-metric strong {
+      font-size: 15px;
+      color: var(--primary);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: var(--radius-full);
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(148,163,253,0.16);
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .pill span {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    /* Footer mini */
+    .footer {
+      font-size: 9px;
+      color: var(--muted);
+      text-align: center;
+      padding: 10px 0 16px;
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- NAV -->
+  <header class="nav">
+    <div class="brand">
+      <div class="brand-pill">Panel</div>
+      <div>Invex</div>
+    </div>
+    <div class="nav-links">
+      <span>Sesión iniciada como {{ request.user.email }}</span>
+      <a href="{% url 'logout' %}" class="nav-cta">Cerrar sesión</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <div class="hero-kicker">
+        Tu centro de control
+        {% if cliente %}
+          {% if cliente.is_ready %}
+            <span>Espacio listo</span>
+          {% else %}
+            <span>Configurando espacio</span>
+          {% endif %}
+        {% else %}
+          <span>Paso 1: crea tu compañía</span>
+        {% endif %}
+      </div>
+
+      <h1>
+        Hola
+        <span>
+          {{ request.user.first_name|default:request.user.email }}
+        </span>
+      </h1>
+
+      {% if cliente %}
+        <p>
+          Estás gestionando la cuenta de
+          <span class="highlight">{{ cliente.nombre_compania }}</span>.
+          Desde aquí podrás acceder al espacio privado de la empresa con su propio subdominio,
+          donde tendrás módulos de inventario, ventas y caja totalmente aislados.
+        </p>
+
+        <div class="hero-actions">
+          {% if cliente.is_ready and tenant_login_url %}
+            <a href="{{ tenant_login_url }}">
+              <button class="btn-primary">
+                Acceder al espacio de la empresa →
+              </button>
+            </a>
+          {% else %}
+            <button class="btn-ghost" disabled>
+              Configurando tu espacio… actualiza la página en unos segundos
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="hero-note">
+          Si necesitas cambiar datos de la compañía más adelante, podrás hacerlo desde el panel interno.
+        </div>
+      {% else %}
+        <p>
+          Aún no has creado el espacio de tu empresa. Cada compañía tiene su propio subdominio y base de datos
+          aislada, ideal para controlar inventarios, ventas y caja sin mezclar información.
+        </p>
+
+        <div class="hero-actions">
+          <a href="{% url 'public:create_company' %}">
+            <button class="btn-primary">
+              Crear espacio de mi empresa →
+            </button>
+          </a>
+          <button class="btn-ghost" type="button">
+            Más tarde, solo quería explorar
+          </button>
+        </div>
+
+        <div class="hero-note">
+          Podrás crear tantas cuentas de usuario como necesites dentro del espacio de tu compañía.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Panel derecho: estado de cuenta -->
+    <div class="hero-right">
+      <div class="hero-right-title">Resumen de tu cuenta</div>
+
+      <div class="hero-metric">
+        <span>Usuario</span>
+        <strong>{{ request.user.email }}</strong>
+      </div>
+
+      <div class="hero-metric">
+        <span>Compañía vinculada</span>
+        {% if cliente %}
+          <strong>{{ cliente.nombre_compania }}</strong>
+        {% else %}
+          <span class="highlight">Sin compañía creada</span>
+        {% endif %}
+      </div>
+
+      <div class="hero-metric">
+        <span>Estado del espacio</span>
+        {% if cliente %}
+          {% if cliente.is_ready %}
+            <span class="highlight">Listo para usar</span>
+          {% else %}
+            <span>Configurando…</span>
+          {% endif %}
+        {% else %}
+          <span>Pendiente de creación</span>
+        {% endif %}
+      </div>
+
+      {% if cliente and cliente.trial_ends_at %}
+        <div class="hero-metric">
+          <span>Fin de periodo de prueba</span>
+          <strong>{{ cliente.trial_ends_at|date:"d/m/Y" }}</strong>
+        </div>
+      {% endif %}
+
+      <div class="pill">
+        <span>✓</span>
+        Subdominio único por empresa
+      </div>
+      <div class="pill">
+        <span>✓</span>
+        Datos aislados por schema de PostgreSQL
+      </div>
+      <div class="pill">
+        <span>✓</span>
+        Ideal para inventarios, ventas y caja
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="footer">
+  Invex © {{ now|date:"Y" }} · Panel de cuentas
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,342 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Crear cuenta · Invex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020817 55%);
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(9,9,18,0.98);
+      border-radius: 18px;
+      padding: 22px 22px 18px;
+      box-shadow: 0 18px 45px rgba(15,23,42,0.7);
+      border: 1px solid rgba(148,163,253,0.16);
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 4px;
+      font-weight: 600;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 14px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 11px;
+    }
+    label { margin-bottom: 2px; color: #9ca3af; }
+    input {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 9px;
+      border: 1px solid #111827;
+      background: #020817;
+      color: #e5e7eb;
+      font-size: 11px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    input:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px rgba(34,197,94,0.15);
+    }
+    input:invalid:not(:focus):not(:placeholder-shown) {
+      border-color: #f97316;
+    }
+    input:valid:not(:focus):not(:placeholder-shown) {
+      border-color: #22c55e;
+    }
+    .btn-primary {
+      margin-top: 6px;
+      padding: 9px 0;
+      border-radius: 999px;
+      background: #22c55e;
+      color: #020817;
+      font-weight: 600;
+      font-size: 12px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover {
+      background: #16a34a;
+    }
+    .btn-primary:disabled {
+      background: #6b7280;
+      cursor: not-allowed;
+    }
+    .btn-google {
+      margin-top: 4px;
+      padding: 8px 0;
+      border-radius: 999px;
+      background: transparent;
+      border: 1px solid rgba(148,163,253,0.35);
+      color: #e5e7eb;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: border-color 0.2s;
+    }
+    .btn-google:hover {
+      border-color: rgba(148,163,253,0.7);
+    }
+    .hint {
+      margin-top: 6px;
+      font-size: 9px;
+      color: #9ca3af;
+    }
+    .brand {
+      font-size: 11px;
+      margin-bottom: 10px;
+      color: #9ca3af;
+    }
+    .errorlist {
+      list-style: none;
+      padding-left: 0;
+      margin: 4px 0 0;
+      color: #f97316;
+      font-size: 9px;
+    }
+    .field-errors {
+      min-height: 12px;
+    }
+    .password-requirements {
+      font-size: 9px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    .requirement {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+    .requirement.met {
+      color: #22c55e;
+    }
+    .requirement.unmet {
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">Invex · SaaS de Inventarios &amp; POS</div>
+  <h1>Crea tu espacio</h1>
+  <div class="subtitle">
+    30 días gratis. Luego COP $29.900/mes por compañía. Sin tarjeta para comenzar.
+  </div>
+
+  <form method="post" id="registerForm" novalidate>
+    {% csrf_token %}
+
+    <label for="id_company_name">Nombre de la compañía *</label>
+    {{ form.company_name }}
+    <div class="field-errors">
+      {% if form.company_name.errors %}
+        <ul class="errorlist">
+          {% for error in form.company_name.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <label for="id_full_name">Tu nombre</label>
+    {{ form.full_name }}
+    <div class="field-errors">
+      {% if form.full_name.errors %}
+        <ul class="errorlist">
+          {% for error in form.full_name.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <label for="id_email">Correo electrónico *</label>
+    {{ form.email }}
+    <div class="field-errors">
+      {% if form.email.errors %}
+        <ul class="errorlist">
+          {% for error in form.email.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <label for="id_password1">Contraseña *</label>
+    {{ form.password1 }}
+    <div class="password-requirements">
+      <div class="requirement unmet" id="req-length">Al menos 8 caracteres</div>
+      <div class="requirement unmet" id="req-uppercase">Una letra mayúscula</div>
+      <div class="requirement unmet" id="req-lowercase">Una letra minúscula</div>
+      <div class="requirement unmet" id="req-number">Un número</div>
+      <div class="requirement unmet" id="req-special">Un carácter especial (@$!%*?&)</div>
+    </div>
+    <div class="field-errors">
+      {% if form.password1.errors %}
+        <ul class="errorlist">
+          {% for error in form.password1.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <label for="id_password2">Confirmar contraseña *</label>
+    {{ form.password2 }}
+    <div class="field-errors">
+      {% if form.password2.errors %}
+        <ul class="errorlist">
+          {% for error in form.password2.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+      <ul class="errorlist">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <button type="submit" class="btn-primary" id="submitBtn">Crear mi cuenta</button>
+  </form>
+
+  <form action="#" method="get">
+    <button type="button" class="btn-google">
+      <span>Continuar con Google (próximamente)</span>
+    </button>
+  </form>
+
+  <div class="hint">
+    Al registrarte se creará un subdominio exclusivo para tu empresa, por ejemplo:
+    <strong>mitienda.tu-dominio.com</strong>.
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const password1 = document.getElementById('id_password1');
+    const password2 = document.getElementById('id_password2');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Elementos de requisitos de contraseña
+    const reqLength = document.getElementById('req-length');
+    const reqUppercase = document.getElementById('req-uppercase');
+    const reqLowercase = document.getElementById('req-lowercase');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+
+    // Validación en tiempo real de contraseña
+    function validatePassword(password) {
+      const hasLength = password.length >= 8;
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasLowercase = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecial = /[@$!%*?&]/.test(password);
+
+      // Actualizar UI
+      reqLength.className = hasLength ? 'requirement met' : 'requirement unmet';
+      reqUppercase.className = hasUppercase ? 'requirement met' : 'requirement unmet';
+      reqLowercase.className = hasLowercase ? 'requirement met' : 'requirement unmet';
+      reqNumber.className = hasNumber ? 'requirement met' : 'requirement unmet';
+      reqSpecial.className = hasSpecial ? 'requirement met' : 'requirement unmet';
+
+      return hasLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
+    }
+
+    // Validar coincidencia de contraseñas
+    function validatePasswordMatch() {
+      if (password1.value && password2.value) {
+        if (password1.value !== password2.value) {
+          password2.setCustomValidity('Las contraseñas no coinciden');
+        } else {
+          password2.setCustomValidity('');
+        }
+      }
+    }
+
+    // Event listeners
+    password1.addEventListener('input', function() {
+      validatePassword(this.value);
+      validatePasswordMatch();
+    });
+
+    password2.addEventListener('input', validatePasswordMatch);
+
+    // Validación antes del envío
+    form.addEventListener('submit', function(e) {
+      let isValid = true;
+
+      // Validar campos requeridos
+      const requiredFields = form.querySelectorAll('[required]');
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          isValid = false;
+          field.reportValidity();
+        }
+      });
+
+      // Validar contraseña
+      if (password1.value && !validatePassword(password1.value)) {
+        isValid = false;
+        password1.setCustomValidity('La contraseña no cumple con los requisitos');
+        password1.reportValidity();
+      }
+
+      if (!isValid) {
+        e.preventDefault();
+      }
+    });
+
+    // Validación en tiempo real para habilitar/deshabilitar botón
+    function validateForm() {
+      const requiredFields = form.querySelectorAll('[required]');
+      const allRequiredFilled = Array.from(requiredFields).every(field => field.value.trim());
+      const passwordsMatch = password1.value === password2.value;
+      const passwordValid = validatePassword(password1.value);
+
+      submitBtn.disabled = !(allRequiredFilled && passwordsMatch && passwordValid);
+    }
+
+    // Escuchar cambios en todos los campos
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('input', validateForm);
+    });
+
+    // Validación inicial
+    validateForm();
+  });
+</script>
+</body>
+</html>

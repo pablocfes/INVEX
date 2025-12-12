@@ -11,6 +11,9 @@ from django.views import View
 from django_tenants.utils import tenant_context
 from core.models import Cliente, Dominio
 from core.forms_public import RegisterTenantForm
+from django.contrib.auth import login
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 class LandingView(TemplateView):
     template_name = "public/landing.html"

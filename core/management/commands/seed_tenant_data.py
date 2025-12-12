@@ -38,7 +38,7 @@ def run_seed_logic():
     company.description = 'Ventas Al Por Mayor Y Por Menor En Productos para el hogar.'
     company.website = 'https://algorisoft.com'
     company.address = 'Cdla. Dager, Calle Rio Zamora entre Av.Tumbes y Av. Tarqui'
-    company.iva = 12.00
+    company.iva = 19.00
     company.save()
 
     moduletype = ModuleType()

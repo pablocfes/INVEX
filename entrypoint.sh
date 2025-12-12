@@ -49,9 +49,9 @@ from core.models import Cliente, Dominio
 if connection.schema_name != getattr(settings, 'PUBLIC_SCHEMA_NAME', 'public'):
     connection.set_schema(getattr(settings, 'PUBLIC_SCHEMA_NAME', 'public'))
 
-schema = e.get('TENANT_SCHEMA','demo')
-name = e.get('TENANT_NAME','Demo Company')
-domain = e.get('TENANT_DOMAIN','demo.localhost')
+schema = e.get('TENANT_SCHEMA','public')
+name = e.get('TENANT_NAME','public Company')
+domain = e.get('TENANT_DOMAIN','public.localhost')
 trial_days = int(e.get('TENANT_TRIAL_DAYS','30'))
 
 cliente, created = Cliente.objects.get_or_create(
@@ -60,6 +60,24 @@ cliente, created = Cliente.objects.get_or_create(
 )
 Dominio.objects.get_or_create(domain=domain, defaults={'tenant': cliente, 'is_primary': True})
 print('Tenant listo:', schema, 'Dominio:', domain)
+
+
+# Trabajamos sobre el schema public
+connection.set_schema(settings.PUBLIC_SCHEMA_NAME)
+
+print('Tenants:', list(Cliente.objects.all().values('id','schema_name','nombre_compania')))
+
+pub = Cliente.objects.get(schema_name='public')
+
+print('Dominios antes:', list(Dominio.objects.all().values('id','domain','tenant__schema_name')))
+
+d, created = Dominio.objects.get_or_create(
+    domain='localhost',
+    defaults={'tenant': pub, 'is_primary': False},
+)
+
+print('Domain localhost creado?', created)
+print('Dominios despues:', list(Dominio.objects.all().values('id','domain','tenant__schema_name')))
 "
 
 # 4) (Opcional) Forzar migraciones de TENANTS existentes (útil si auto_create_schema=False)
