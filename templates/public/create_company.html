@@ -1,0 +1,218 @@
+{% extends 'public/base.html' %}
+
+{% block css %}
+
+  <style>
+    :root{
+      --primary:#22c55e;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:rgba(148,163,253,0.16);
+      --card:rgba(9,9,18,0.98);
+    }
+    body{
+      font-family:'Inter',system-ui,sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020817 55%);
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      margin:0;
+      padding:18px;
+    }
+    .card{
+      width:100%;
+      max-width:440px;
+      background:var(--card);
+      border-radius:18px;
+      padding:22px 22px 18px;
+      box-shadow:0 18px 45px rgba(15,23,42,0.7);
+      border:1px solid var(--border);
+    }
+    .brand{
+      font-size:11px;
+      margin-bottom:10px;
+      color:var(--muted);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 9px;
+      border-radius:999px;
+      background: rgba(34,197,94,0.14);
+      color: var(--primary);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h1{
+      font-size:20px;
+      margin:0 0 4px;
+      font-weight:600;
+    }
+    .subtitle{
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:14px;
+      line-height:1.5;
+    }
+    form{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      font-size:11px;
+    }
+    label{margin-bottom:2px;color:var(--muted);}
+    input{
+      width:100%;
+      padding:8px 10px;
+      border-radius:9px;
+      border:1px solid #111827;
+      background:#020817;
+      color:var(--text);
+      font-size:11px;
+      outline:none;
+      box-sizing:border-box;
+    }
+    input:focus{
+      border-color:var(--primary);
+      box-shadow:0 0 0 1px rgba(34,197,94,0.15);
+    }
+    .btn-primary{
+      margin-top:6px;
+      padding:10px 0;
+      border-radius:999px;
+      background:var(--primary);
+      color:#020817;
+      font-weight:700;
+      font-size:12px;
+      border:none;
+      cursor:pointer;
+      transition:background .2s;
+    }
+    .btn-primary:hover{background:#16a34a;}
+    .btn-ghost{
+      margin-top:6px;
+      padding:10px 0;
+      border-radius:999px;
+      background:transparent;
+      border:1px solid rgba(148,163,253,0.28);
+      color:var(--muted);
+      font-weight:600;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .btn-ghost:hover{border-color:rgba(148,163,253,0.6); color:var(--text);}
+    .hint{
+      margin-top:10px;
+      font-size:9px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .errorlist{
+      list-style:none;
+      padding-left:0;
+      margin:4px 0 0;
+      color:#f97316;
+      font-size:9px;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    a{color:inherit;text-decoration:none;}
+  </style>
+{% endblock %}
+
+{% block content %}
+<body>
+  <div class="card">
+    <div class="brand">
+      <span>Invex · Crear compañía</span>
+      <span class="pill">30 días gratis</span>
+    </div>
+
+    <h1>Configura tu compañía</h1>
+
+
+    <div class="hint">
+      Ejemplo de acceso: <strong>miempresa.localhost</strong> (local) o
+      <strong>miempresa.tu-dominio.com</strong> (producción).
+      <br>
+      Si el botón “Acceder al espacio” aún no aparece, es porque estamos terminando migraciones/configuración.
+    </div>
+
+    <br>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div>
+        <label for="id_company_name">Nombre de la compañía *</label>
+        {{ form.company_name }}
+      <div>
+        <label for="id_password">Contraseña</label>
+        {{ form.password }}
+      </div>
+      <div>
+        <label for="id_nit">Nit de la compañia</label>
+        {{ form.nit }}
+      </div>
+      <div>
+        <label for="id_phone">Teléfono</label>
+        {{ form.phone }}
+      </div>
+      <div>
+        <label for="id_address">Dirección</label>
+        {{ form.address }}
+      </div>
+      <div>
+        <label for="id_city">Ciudad</label>
+        {{ form.city }}
+      </div>
+      <div>
+        <label for="id_web">Web</label>
+        {{ form.web }}
+      </div>
+
+
+      {% if form.non_field_errors %}
+        <ul class="errorlist">
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <button type="submit" class="btn-primary">Crear compañía</button>
+      <a href="{% url 'account_home' %}">
+        <button type="button" class="btn-ghost">Volver</button>
+      </a>
+    </form>
+
+
+  </div>
+</body>
+{% endblock %}
+{% block js %}
+<script>
+  const companyNameInput = document.getElementById('id_company_name');
+  const hintDiv = document.querySelector('.hint');
+  companyNameInput.addEventListener('input', function() {
+    const value = companyNameInput.value;
+    const subdomain = value.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-') // Reemplaza caracteres no permitidos por guiones
+      .replace(/^-+|-+$/g, '');    // Elimina guiones al inicio y al final
+    hintDiv.innerHTML = `Ejemplo de acceso: <strong>${subdomain}.localhost</strong> (local) o <strong>${subdomain}.tu-dominio.com</strong> (producción).<br>Si el botón “Acceder al espacio” aún no aparece, es porque estamos terminando migraciones/configuración.`;
+  });
+
+</script>
+{% endblock %}
