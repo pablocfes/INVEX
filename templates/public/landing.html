@@ -1,387 +1,116 @@
-{% load static %}
+{% extends 'public/base.html' %}
+{% block css %}
+{% endblock %}
+{% block content %}
+    <div class="page">
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Invex - Controla tu negocio fácil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Fuente opcional -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --bg: #050816;
-      --bg-soft: #0f172a;
-      --primary: #22c55e;
-      --primary-soft: rgba(34,197,94,0.14);
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --radius-xl: 18px;
-      --radius-full: 999px;
-    }
-
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body {
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at top, #111827 0, #020817 55%);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    .page {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 28px 18px 40px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 40px;
-    }
-
-    /* Header */
-
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-    }
-
-    .brand-pill {
-      background: var(--primary-soft);
-      color: var(--primary);
-      padding: 2px 10px;
-      border-radius: var(--radius-full);
-      font-size: 10px;
-      text-transform: uppercase;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .nav-links a:hover { color: var(--primary); }
-
-    .nav-cta {
-      padding: 7px 16px;
-      border-radius: var(--radius-full);
-      background: var(--primary);
-      color: #020817;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    /* Hero */
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 3fr) minmax(260px, 2.6fr);
-      gap: 28px;
-      align-items: center;
-    }
-
-    .hero-kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      background: rgba(148,163,253,0.06);
-      font-size: 10px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    .hero-kicker span {
-      background: var(--primary-soft);
-      color: var(--primary);
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    .hero h1 {
-      font-size: clamp(26px, 4vw, 34px);
-      font-weight: 700;
-      line-height: 1.15;
-      margin-bottom: 10px;
-    }
-
-    .hero h1 span {
-      color: var(--primary);
-    }
-
-    .hero p {
-      font-size: 13px;
-      color: var(--muted);
-      max-width: 470px;
-      margin-bottom: 20px;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .btn-primary {
-      padding: 9px 20px;
-      border-radius: var(--radius-full);
-      background: var(--primary);
-      color: #020817;
-      font-weight: 600;
-      font-size: 13px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn-ghost {
-      padding: 9px 14px;
-      border-radius: var(--radius-full);
-      border: 1px solid rgba(148,163,253,0.28);
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .hero-note {
-      font-size: 10px;
-      color: var(--muted);
-    }
-
-    .hero-right {
-      background: radial-gradient(circle at top, rgba(34,197,94,0.14), transparent),
-                  #020817;
-      border-radius: var(--radius-xl);
-      padding: 14px 14px 14px;
-      border: 1px solid rgba(148,163,253,0.14);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .hero-right-title {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-    }
-
-    .hero-metric {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .hero-metric strong {
-      font-size: 15px;
-      color: var(--primary);
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 9px;
-      border-radius: var(--radius-full);
-      background: rgba(15,23,42,0.98);
-      border: 1px solid rgba(148,163,253,0.16);
-      font-size: 9px;
-      color: var(--muted);
-    }
-
-    .pill span {
-      color: var(--primary);
-      font-weight: 600;
-      font-size: 10px;
-    }
-
-    /* Sección features */
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 14px;
-      font-size: 11px;
-    }
-
-    .feature {
-      background: rgba(9,9,18,0.98);
-      border-radius: var(--radius-xl);
-      padding: 10px 11px;
-      border: 1px solid rgba(148,163,253,0.14);
-    }
-
-    .feature h3 {
-      font-size: 11px;
-      margin-bottom: 4px;
-      font-weight: 600;
-    }
-
-    .feature p {
-      color: var(--muted);
-      font-size: 10px;
-      line-height: 1.5;
-    }
-
-    /* Footer mini */
-
-    .footer {
-      font-size: 9px;
-      color: var(--muted);
-      text-align: center;
-      padding: 10px 0 16px;
-    }
-
-    @media (max-width: 720px) {
-      .hero {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-<body>
-<div class="page">
-
-  <!-- NAV -->
-  <header class="nav">
-    <div class="brand">
-      <div class="brand-pill">SaaS Inventarios</div>
-      <div>Invex</div>
-    </div>
-    <div class="nav-links">
-      <a href="#features">Características</a>
-      <a href="#pricing">Precios</a>
-      <a href="#faq">FAQs</a>
-      <a href="{% url 'registro' %}" class="nav-cta">Comenzar gratis</a>
-    </div>
-  </header>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div>
-      <div class="hero-kicker">
-        Diseñado para pequeñas y medianas empresas
-        <span>30 días gratis</span>
-      </div>
-      <h1>
-        Controla inventarios, ventas y caja
-        <span>sin hojas de cálculo eternas.</span>
-      </h1>
-      <p>
-        Invex centraliza tus productos, movimientos, usuarios y sucursales en una sola plataforma.
-        Cada empresa tiene su propio espacio aislado y seguro, con acceso desde tu propio subdominio.
-      </p>
-
-      <div class="hero-actions">
+    <!-- NAV -->
+    <header class="nav">
+        <div class="brand">
+        <div class="brand-pill">SaaS Inventarios</div>
+        <div>Invex</div>
+        </div>
+        <div class="nav-links">
+        <a href="#features">Características</a>
+        <a href="#pricing">Precios</a>
+        <a href="#faq">FAQs</a>
         <a href="{% url 'registro' %}" class="nav-cta">Comenzar gratis</a>
-          <button class="btn-primary">Comenzar prueba gratis</button>
-        </a>
-        <a href="#features">
-          <button class="btn-ghost">Ver cómo funciona →</button>
-        </a>
-      </div>
-      <div class="hero-note">
-        Sin tarjetas al inicio · 30 días completos · Luego COP $29.900/mes por compañía.
-      </div>
+        <a href="{% url 'public_login' %}" class="nav-cta_2">Iniciar sesión</a>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div>
+        <div class="hero-kicker">
+            Diseñado para pequeñas y medianas empresas
+            <span>30 días gratis</span>
+        </div>
+        <h1>
+            Controla inventarios, ventas y caja
+            <span>sin hojas de cálculo eternas.</span>
+        </h1>
+        <p>
+            Invex centraliza tus productos, movimientos, usuarios y sucursales en una sola plataforma.
+            Cada empresa tiene su propio espacio aislado y seguro, con acceso desde tu propio subdominio.
+        </p>
+
+        <div class="hero-actions">
+            <a href="{% url 'registro' %}" class="nav-cta">Comenzar gratis</a>
+            </a>
+            <a href="#features">
+            <button class="btn-ghost">Ver cómo funciona →</button>
+            </a>
+        </div>
+        <div class="hero-note">
+            Sin tarjetas al inicio · 30 días completos · Luego COP $29.900/mes por compañía.
+        </div>
+        </div>
+
+        <div class="hero-right">
+        <div class="hero-right-title">Resumen de tu cuenta</div>
+
+        <div class="hero-metric">
+            <span>Compañías activas</span>
+            <strong>+120</strong>
+        </div>
+        <div class="hero-metric">
+            <span>Tiempo ahorrado en cierres</span>
+            <strong>≈ 8h/mes</strong>
+        </div>
+        <div class="hero-metric">
+            <span>Seguridad</span>
+            <span>Multi-tenant · PostgreSQL schemas · Backups diarios</span>
+        </div>
+
+        <div class="pill">
+            <span>✓</span> Subdominio único por empresa
+        </div>
+        <div class="pill">
+            <span>✓</span> Usuarios ilimitados por compañía
+        </div>
+        <div class="pill">
+            <span>✓</span> Listo para POS, compras, reportes y más
+        </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="features">
+        <div class="feature">
+        <h3>Inventarios al día</h3>
+        <p>
+            Entradas, salidas, ajustes y kardex en tiempo real. Control por bodega, sucursal y categoría.
+        </p>
+        </div>
+        <div class="feature">
+        <h3>Ventas & POS</h3>
+        <p>
+            Punto de venta rápido, impuestos configurables y reportes listos para tu contador.
+        </p>
+        </div>
+        <div class="feature">
+        <h3>Multi-tenant seguro</h3>
+        <p>
+            Cada empresa en su propio schema PostgreSQL y subdominio.
+            Aislamiento de datos a nivel de base de datos.
+        </p>
+        </div>
+        <div class="feature" id="pricing">
+        <h3>Precio simple</h3>
+        <p>
+            30 días gratis. Luego COP $29.900/mes por compañía.
+            Sin costos ocultos, sin contratos eternos.
+        </p>
+        </div>
+    </section>
+
+    <!-- Mini FAQ anchor -->
+    <section id="faq"></section>
+
     </div>
+{% endblock %}
 
-    <div class="hero-right">
-      <div class="hero-right-title">Resumen de tu cuenta</div>
 
-      <div class="hero-metric">
-        <span>Compañías activas</span>
-        <strong>+120</strong>
-      </div>
-      <div class="hero-metric">
-        <span>Tiempo ahorrado en cierres</span>
-        <strong>≈ 8h/mes</strong>
-      </div>
-      <div class="hero-metric">
-        <span>Seguridad</span>
-        <span>Multi-tenant · PostgreSQL schemas · Backups diarios</span>
-      </div>
-
-      <div class="pill">
-        <span>✓</span> Subdominio único por empresa
-      </div>
-      <div class="pill">
-        <span>✓</span> Usuarios ilimitados por compañía
-      </div>
-      <div class="pill">
-        <span>✓</span> Listo para POS, compras, reportes y más
-      </div>
-    </div>
-  </section>
-
-  <!-- FEATURES -->
-  <section id="features" class="features">
-    <div class="feature">
-      <h3>Inventarios al día</h3>
-      <p>
-        Entradas, salidas, ajustes y kardex en tiempo real. Control por bodega, sucursal y categoría.
-      </p>
-    </div>
-    <div class="feature">
-      <h3>Ventas & POS</h3>
-      <p>
-        Punto de venta rápido, impuestos configurables y reportes listos para tu contador.
-      </p>
-    </div>
-    <div class="feature">
-      <h3>Multi-tenant seguro</h3>
-      <p>
-        Cada empresa en su propio schema PostgreSQL y subdominio.
-        Aislamiento de datos a nivel de base de datos.
-      </p>
-    </div>
-    <div class="feature" id="pricing">
-      <h3>Precio simple</h3>
-      <p>
-        30 días gratis. Luego COP $29.900/mes por compañía.
-        Sin costos ocultos, sin contratos eternos.
-      </p>
-    </div>
-  </section>
-
-  <!-- Mini FAQ anchor -->
-  <section id="faq"></section>
-
-</div>
-
-<footer class="footer">
-  Invex © {{ now|date:"Y" }} · Multi-tenant Inventory & POS
-</footer>
-
-</body>
-</html>
+{% block js %}
+{% endblock %}

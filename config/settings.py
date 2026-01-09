@@ -31,20 +31,22 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 SHARED_APPS = [
-    "django_tenants",                 # debe ir primero
-    "django.contrib.contenttypes",    # requerido por tenants
+    "django_tenants",
+    "django.contrib.contenttypes",
     "django.contrib.staticfiles",
+    "django.contrib.sessions",   # ✅ aquí
+    "django.contrib.messages",   # (opcional, pero útil en public)
+    "core",
     "widget_tweaks",
     "django_user_agents",
-    "core",                           # aquí van Cliente (Tenant) y Dominio
 ]
 
 # apps por-tenant (viven dentro de cada schema)
 TENANT_APPS = [
     "django.contrib.auth",
     "django.contrib.admin",
-    "django.contrib.sessions",
-    "django.contrib.messages",
+    # "django.contrib.sessions",
+    # "django.contrib.messages",
 
     # tus apps de negocio por-tenant
     "security",
@@ -178,7 +180,7 @@ LOCALHOST = 'algorisoft.com'
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
-SESSION_COOKIE_NAME = 'factora'
+SESSION_COOKIE_NAME = 'invex_sessionid'
 
 GROUPS = {
     'client': 2,

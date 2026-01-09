@@ -113,4 +113,71 @@ class RegisterTenantForm(forms.Form):
             self.add_error("password2", "Las contraseñas no coinciden.")
 
         return cleaned
-    
+
+
+class RegisterUserForm(forms.Form):
+    full_name = forms.CharField(
+        label="Tu nombre",
+        max_length=150,
+        required=False,
+    )
+    email = forms.EmailField(label="Correo electrónico")
+    password1 = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput,
+    )
+    password2 = forms.CharField(
+        label="Confirmar contraseña",
+        widget=forms.PasswordInput,
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        p1 = cleaned.get("password1")
+        p2 = cleaned.get("password2")
+        if p1 and p2 and p1 != p2:
+            self.add_error("password2", "Las contraseñas no coinciden.")
+        return cleaned
+
+
+class CompanyForm(forms.Form):
+    company_name = forms.CharField(
+        label="Nombre de la compañía",
+        max_length=150,
+    )
+    nit = forms.CharField(
+        label="NIT",
+        max_length=20,
+        required=True
+    )
+    phone = forms.CharField(
+        label="Teléfono",
+        max_length=20,
+        required=True
+    )
+    address = forms.CharField(
+        label="Dirección",
+        max_length=255,
+        required=True
+    )
+    city = forms.CharField(
+        label="Ciudad",
+        max_length=100,
+        required=True
+    )
+    web = forms.CharField(
+        label="Website",
+        max_length=100,
+        required=False
+    )
+    password = forms.CharField(
+        label="Contraseña de la compañía",
+        widget=forms.PasswordInput,
+        required=True
+    )
+
+
+
+class PublicLoginForm(forms.Form):
+    email = forms.EmailField(label="Correo")
+    password = forms.CharField(label="Contraseña", widget=forms.PasswordInput)

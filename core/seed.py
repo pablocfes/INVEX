@@ -7,27 +7,27 @@ from pos.models import *
 
 
 
-def run_initial_tenant_seed(user: User):
+def run_initial_tenant_seed(user: User, company_info: dict):
 
     numbers = list(string.digits)
 
     dashboard = Dashboard()
-    dashboard.name = 'FACTORA POS'
+    dashboard.name = 'INVEX - POS'
     dashboard.icon = 'fas fa-shopping-cart'
     dashboard.layout = 1
-    dashboard.navbar = 'navbar-dark navbar-primary'
-    dashboard.sidebar = 'sidebar-dark-primary'
+    dashboard.navbar = 'navbar-white navbar-white'
+    dashboard.sidebar = 'sidebar-light-olive'
     dashboard.save()
 
     company = Company()
-    company.name = 'FACTORA POS S.A.'
-    company.nit = ''.join(random.choices(numbers, k=13))
-    company.email = 'williamjair94@hotmail.com'
-    company.phone = ''.join(random.choices(numbers, k=7))
-    company.mobile = ''.join(random.choices(numbers, k=10))
-    company.description = 'Ventas Al Por Mayor Y Por Menor En Productos para el hogar.'
-    company.website = 'https://algorisoft.com'
-    company.address = 'Cdla. Dager, Calle Rio Zamora entre Av.Tumbes y Av. Tarqui'
+    company.name = company_info.get('company_name', 'Compañia Sin Nombre')
+    company.nit = company_info.get('nit', '9999999999')
+    company.email = user.email
+    company.phone = company_info.get('phone', '0999999999')
+    company.mobile = company_info.get('phone', '0999999999')
+    company.description = 'Descripción de la compañía'
+    company.website = company_info.get('web', 'www.miempresa.com')
+    company.address = company_info.get('address', 'Dirección de la compañía')
     company.iva = 19.00
     company.save()
 
@@ -535,8 +535,8 @@ def run_initial_tenant_seed(user: User):
     print(f'Bienvenido {user.names}')
 
     usuario_cliente = User()
-    usuario_cliente.names = 'Cliente Generico'
-    usuario_cliente.username = 'cliente_generico'
+    usuario_cliente.names = 'Cliente Final'
+    usuario_cliente.username = 'cliente_final'
     usuario_cliente.dni = '2222222222'
     usuario_cliente.email = ''
     usuario_cliente.is_active = True

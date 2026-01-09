@@ -48,3 +48,16 @@ class Cliente(TenantMixin):
 
 class Dominio(DomainMixin):
     pass
+
+
+class PublicAccount(models.Model):
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=150, blank=True)
+    password_hash = models.CharField(max_length=256)  # guardaremos con make_password
+    is_active = models.BooleanField(default=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

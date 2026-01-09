@@ -9,14 +9,22 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.views import View
 from django_tenants.utils import tenant_context
-from core.models import Cliente, Dominio
-from core.forms_public import RegisterTenantForm
+from core.models import Cliente, Dominio, PublicAccount
+from core.forms_public import RegisterTenantForm, RegisterUserForm, CompanyForm, PublicLoginForm
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
+from core.auth_public import hash_password, verify_password
 
 
 class LandingView(TemplateView):
     template_name = "public/landing.html"
+
+    def dispatch(self, request, *args, **kwargs):
+
+        if request.session.get("signup_full_name"):
+            return redirect("account_home")
+        return super().dispatch(request, *args, **kwargs)
+    
 
 
 def build_unique_slug(base: str) -> str:
@@ -78,7 +86,6 @@ class RegisterTenantView(View):
         # 4) crear usuario owner y seed inicial DENTRO del tenant
         with tenant_context(cliente):
             User = get_user_model()
-            username = email.split("@")[0]
 
             user, created = User.objects.get_or_create(
                 email=email,
@@ -108,3 +115,199 @@ class RegisterTenantView(View):
             f"Tu espacio para {company_name} ha sido creado. Ingresa con tus credenciales."
         )
         return redirect(login_url)
+
+
+class RegisterUserView(View):
+    template_name = "public/register.html"
+
+    def get(self, request):
+        form = RegisterUserForm()
+        return render(request, self.template_name, {"form": form})
+
+    def post(self, request):
+        form = RegisterUserForm(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, {"form": form})
+
+        full_name = form.cleaned_data.get("full_name") or ""
+        email = form.cleaned_data["email"].lower().strip()
+        password = form.cleaned_data["password1"]
+
+        # Crear cuenta pública
+        account, created = PublicAccount.objects.get_or_create(
+            email=email,
+            defaults={
+                "full_name": full_name,
+                "password_hash": hash_password(password),
+            },
+        )
+
+        if not created:
+            messages.error(request, "Este correo ya está registrado. Inicia sesión.")
+            return redirect("public_login")
+
+        # Iniciar sesión en portal público
+        public_login(request, account)
+        return redirect("account_home")
+
+
+class AccountHomeView(View):
+    template_name = "public/account_home.html"
+
+    def get(self, request):
+        user = get_public_user(request)
+        if not user:
+            return redirect("public_login")
+
+        # compañías asociadas por email_contacto
+        companies = Cliente.objects.filter(email_contacto=user.email).order_by("id")
+        company = companies.first()
+
+        space_url = None
+        if company:
+            if settings.MAIN_DOMAIN == "localhost":
+                port = f":{request.get_port()}" if request.get_port() not in ("80", "443") else ""
+                domain = f"{company.schema_name}.localhost"
+                space_url = f"http://{domain}{port}/"
+            else:
+                domain = f"{company.schema_name}.{settings.MAIN_DOMAIN}"
+                space_url = f"https://{domain}/"
+
+        return render(request, self.template_name, {
+            "full_name": user.full_name,
+            "email": user.email,
+            "company": company,
+            "space_url": space_url,
+        })
+
+
+class CreateCompanyView(View):
+    template_name = "public/create_company.html"
+
+    def get(self, request):
+        user = get_public_user(request)
+        if not user:
+            return redirect("public_login")
+
+        if Cliente.objects.filter(email_contacto=user.email).exists():
+            return redirect("account_home")
+
+        return render(request, self.template_name, {"form": CompanyForm()})
+
+    def post(self, request):
+        user = get_public_user(request)
+        if not user:
+            return redirect("public_login")
+    
+        email = user.email
+
+        form = CompanyForm(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, {"form": form})
+
+        company_name = form.cleaned_data["company_name"]
+        password = form.cleaned_data["password"]
+
+        # Evitar duplicados por email_contacto
+        if Cliente.objects.filter(email_contacto=email).exists():
+            messages.info(request, "Ya tienes una compañía asociada a este correo.")
+            return redirect("account_home")
+
+        # 1) slug/schema único
+        schema = build_unique_slug(company_name)
+
+        # 2) crear tenant (schema)
+        cliente = Cliente.objects.create(
+            schema_name=schema,
+            nombre_compania=company_name,
+            trial_ends_at=timezone.now() + timedelta(days=30),
+            email_contacto=email,
+        )
+
+        # 3) dominio primario
+        if settings.MAIN_DOMAIN == "localhost":
+            domain = f"{schema}.localhost"
+        else:
+            domain = f"{schema}.{settings.MAIN_DOMAIN}"
+
+        Dominio.objects.create(
+            domain=domain,
+            tenant=cliente,
+            is_primary=True,
+        )
+
+        # 4) crear usuario owner + seed dentro del tenant
+        with tenant_context(cliente):
+            User = get_user_model()
+            username = email
+
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    "names": user.full_name,
+                    "username": email,
+                    "is_active": True,
+                    "is_staff": True,
+                    "is_superuser": True,
+                },
+            )
+            if created:
+                user.set_password(password)
+                user.save()
+
+            # seed inicial
+            run_initial_tenant_seed(user=user, company_info=form.cleaned_data)
+
+        messages.success(
+            request,
+            f"Tu compañía {company_name} ha sido creada. Ya puedes acceder a tu espacio."
+        )
+        return redirect("account_home")
+
+
+class PublicLoginView(View):
+    template_name = "public/login_public.html"
+
+    def get(self, request):
+        if get_public_user(request):
+            return redirect("account_home")
+        return render(request, self.template_name, {"form": PublicLoginForm()})
+
+    def post(self, request):
+        form = PublicLoginForm(request.POST)
+        if not form.is_valid():
+            return render(request, self.template_name, {"form": form})
+
+        email = form.cleaned_data["email"].lower().strip()
+        password = form.cleaned_data["password"]
+
+        account = PublicAccount.objects.filter(email=email, is_active=True).first()
+        if not account or not verify_password(password, account.password_hash):
+            messages.error(request, "Credenciales inválidas.")
+            return render(request, self.template_name, {"form": form})
+
+        public_login(request, account)
+        return redirect("account_home")
+
+
+class PublicLogoutView(View):
+    def post(self, request):
+        public_logout(request)
+        return redirect("landing")
+
+
+def public_login(request, account: PublicAccount):
+    request.session["public_user_id"] = account.id
+    request.session.modified = True
+    account.last_login = timezone.now()
+    account.save(update_fields=["last_login"])
+
+def public_logout(request):
+    request.session.pop("public_user_id", None)
+    request.session.modified = True
+
+def get_public_user(request):
+    uid = request.session.get("public_user_id")
+    if not uid:
+        return None
+    return PublicAccount.objects.filter(id=uid, is_active=True).first()
