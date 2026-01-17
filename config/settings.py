@@ -37,6 +37,7 @@ SHARED_APPS = [
     "django.contrib.sessions",   # ✅ aquí
     "django.contrib.messages",   # (opcional, pero útil en public)
     "core",
+    "subscriptions",
     "widget_tweaks",
     "django_user_agents",
 ]
@@ -45,10 +46,6 @@ SHARED_APPS = [
 TENANT_APPS = [
     "django.contrib.auth",
     "django.contrib.admin",
-    # "django.contrib.sessions",
-    # "django.contrib.messages",
-
-    # tus apps de negocio por-tenant
     "security",
     "user",        # tu AUTH_USER_MODEL
     "login",       # si este módulo muestra login dentro del subdominio del tenant
@@ -192,3 +189,10 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 # https://docs.djangoproject.com/en/4.0.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
+# STRIPE CREDENTIALS
+STRIPE_SECRET_KEY = os.environ["STRIPE_SECRET_KEY"]      # sk_test_...
+STRIPE_PUBLISHABLE_KEY = os.environ["STRIPE_PUBLISHABLE_KEY"]  # pk_test_...
+STRIPE_WEBHOOK_SECRET = os.environ["STRIPE_WEBHOOK_SECRET"]    # lo da Stripe CLI / Dashboard
+STRIPE_PRICE_ID_MONTHLY = os.environ["STRIPE_PRICE_ID_MONTHLY"]  # price_...

@@ -256,8 +256,7 @@
       <a href="{% url 'landing' %}">Inicio</a>
     </div>
     <div class="nav-links">
-      {% comment %} <a href="{% url 'public_logout' %}">Cerrar Sesión</a> {% endcomment %}
-       <form method="post" action="{% url 'public_logout' %}">
+      <form method="post" action="{% url 'public_logout' %}">
         {% csrf_token %}
         <button type="submit" class="nav-cta secondary">
           Cerrar sesión
@@ -286,9 +285,7 @@
       </p>
 
       <div class="profile-row">
-        <div class="avatar">
-          {{ email|slice:":1"|upper }}
-        </div>
+        <div class="avatar">{{ email|slice:":1"|upper }}</div>
         <div class="meta">
           <div class="name">{{ full_name|default:"Usuario" }}</div>
           <div class="email">{{ email }}</div>
@@ -297,9 +294,25 @@
 
       <div class="actions">
         {% if company and space_url %}
-          <a class="btn primary" href="{{ space_url }}">
-            Acceder a tu espacio →
-          </a>
+          {% if needs_payment %}
+            <a class="btn primary" href="{{ billing_url }}">
+              Activar plan (pago) →
+            </a>
+            <button class="btn ghost" disabled>
+              Acceder a tu espacio (bloqueado)
+            </button>
+            <div class="mini">
+              Tu trial terminó{% if trial_end %} ({{ trial_end|date:"Y-m-d H:i" }}){% endif %}.
+              Para entrar a tu espacio necesitas activar el plan.
+            </div>
+          {% else %}
+            <a class="btn primary" href="{{ space_url }}">
+              Acceder a tu espacio →
+            </a>
+            <a class="btn ghost" href="{{ billing_url }}">
+              Ver plan / Suscripción
+            </a>
+          {% endif %}
         {% else %}
           <a class="btn primary" href="{% url 'create_company' %}">
             Crear compañía
@@ -315,9 +328,17 @@
           <strong>Compañía:</strong> {{ company.nombre_compania }} ·
           <strong>Schema:</strong> {{ company.schema_name }}
         </div>
-        <div class="pill">
-          <span>✓</span> Subdominio y migraciones listas
-        </div>
+
+        {% if needs_payment %}
+          <div class="pill" style="border-color: rgba(249,115,22,0.35);">
+            <span style="color: var(--danger);">!</span> Trial vencido · requiere pago
+          </div>
+        {% else %}
+          <div class="pill">
+            <span>✓</span> Suscripción al día
+          </div>
+        {% endif %}
+
       {% else %}
         <div class="mini">
           Aún no hay compañía creada para este correo. Cuando la crees, aparecerá aquí el botón para entrar.
@@ -336,25 +357,71 @@
 
       <div class="stat">
         <span>Plan</span>
-        <strong>Trial</strong>
-      </div>
-      <div class="stat">
-        <span>Precio luego</span>
-        <strong>$29.900</strong>
-      </div>
-      <div class="stat">
-        <span>Seguridad</span>
-        <span>Multi-tenant · Schemas</span>
+        <strong>
+          {% if subscription %}
+            {{ subscription.get_status_display|default:plan_label }}
+          {% else %}
+            Trial
+          {% endif %}
+        </strong>
       </div>
 
-      <div class="mini">
-        Tip: si estás en local, podrás entrar usando algo como
-        <strong>miempresa.localhost</strong>.
+      <div class="stat">
+        <span>Precio luego</span>
+        <strong>{{ price_label }}</strong>
       </div>
+
+      {% if company %}
+        <div class="stat">
+          <span>Vencimiento</span>
+          <span>
+            {% if subscription and subscription.status == "TRIAL" and trial_end %}
+              {{ trial_end|date:"Y-m-d" }}
+            {% elif subscription and subscription.status == "ACTIVE" and period_end %}
+              {{ period_end|date:"Y-m-d" }}
+            {% else %}
+              —
+            {% endif %}
+          </span>
+        </div>
+
+        <div class="mini">
+          {% if needs_payment %}
+            <strong style="color: var(--danger);">Acceso bloqueado:</strong>
+            activa tu plan para entrar.
+          {% elif days_left is not None %}
+            Te quedan <strong>{{ days_left }}</strong> día(s) en tu periodo actual.
+          {% else %}
+            Todo ok 😄
+          {% endif %}
+        </div>
+
+        {% if needs_payment %}
+          <div class="actions" style="margin-top:12px;">
+            <a class="btn primary" href="{{ billing_url }}">
+              Pagar con Stripe →
+            </a>
+          </div>
+        {% endif %}
+
+        {% if stripe_ready %}
+          <div class="mini" style="margin-top:10px;">
+            <span style="color: var(--muted);">Stripe:</span> cliente vinculado ✅
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="stat">
+          <span>Seguridad</span>
+          <span>Multi-tenant · Schemas</span>
+        </div>
+        <div class="mini">
+          Tip: si estás en local, podrás entrar usando algo como
+          <strong>miempresa.localhost</strong>.
+        </div>
+      {% endif %}
     </aside>
+
   </div>
 
 </div>
-
-
 {% endblock %}

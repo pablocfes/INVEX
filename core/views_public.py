@@ -14,6 +14,15 @@ from core.forms_public import RegisterTenantForm, RegisterUserForm, CompanyForm,
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from core.auth_public import hash_password, verify_password
+from subscriptions.services import create_trial_subscription_for_tenant
+from django.urls import reverse
+ 
+from django_tenants.utils import tenant_context, schema_context
+
+
+from django_tenants.utils import schema_context
+
+from subscriptions.models import Subscription, SubscriptionStatus
 
 
 class LandingView(TemplateView):
@@ -159,7 +168,6 @@ class AccountHomeView(View):
         if not user:
             return redirect("public_login")
 
-        # compañías asociadas por email_contacto
         companies = Cliente.objects.filter(email_contacto=user.email).order_by("id")
         company = companies.first()
 
@@ -173,11 +181,66 @@ class AccountHomeView(View):
                 domain = f"{company.schema_name}.{settings.MAIN_DOMAIN}"
                 space_url = f"https://{domain}/"
 
+        # ====== SUSCRIPCIÓN ======
+        subscription = None
+        plan_label = "Trial"
+        price_label = "$29.900"
+        days_left = None
+        needs_payment = False
+        trial_end = None
+        period_end = None
+        stripe_ready = False
+
+        billing_url = reverse("public_subscription")  # tu pantalla en public
+
+        if company:
+            with schema_context("public"):
+                subscription = Subscription.objects.filter(tenant=company).first()
+
+                if subscription:
+                    # refrescar estado si venció
+                    changed = subscription.refresh_status_if_expired(at=timezone.now())
+                    if changed:
+                        subscription.save(update_fields=["status", "updated_at"])
+
+                    now = timezone.now()
+                    plan_label = subscription.status
+                    trial_end = subscription.trial_end
+                    period_end = subscription.current_period_end
+
+                    stripe_ready = bool(subscription.stripe_customer_id or subscription.stripe_subscription_id)
+
+                    if subscription.status == SubscriptionStatus.TRIAL and subscription.trial_end:
+                        delta = subscription.trial_end - now
+                        days_left = max(delta.days, 0)
+                        needs_payment = now > subscription.trial_end
+                        print("DAYS LEFT TRIAL:", days_left)
+
+                    elif subscription.status == SubscriptionStatus.ACTIVE and subscription.current_period_end:
+                        delta = subscription.current_period_end - now
+                        days_left = max(delta.days, 0)
+                        needs_payment = now > subscription.current_period_end
+                        print("DAYS LEFT ACTIVE:", days_left)
+
+                    elif subscription.status in (SubscriptionStatus.PAST_DUE, SubscriptionStatus.SUSPENDED):
+                        needs_payment = True
+                        print("NEEDS PAYMENT DUE/SUSPENDED")
+
         return render(request, self.template_name, {
             "full_name": user.full_name,
             "email": user.email,
             "company": company,
             "space_url": space_url,
+
+            "subscription": subscription,
+            "plan_label": plan_label,
+            "price_label": price_label,
+            "days_left": days_left,
+            "needs_payment": needs_payment,
+            "trial_end": trial_end,
+            "period_end": period_end,
+            "billing_url": billing_url,
+            "stripe_ready": stripe_ready,
         })
 
 
@@ -195,11 +258,11 @@ class CreateCompanyView(View):
         return render(request, self.template_name, {"form": CompanyForm()})
 
     def post(self, request):
-        user = get_public_user(request)
-        if not user:
+        public_user = get_public_user(request)
+        if not public_user:
             return redirect("public_login")
-    
-        email = user.email
+
+        email = public_user.email
 
         form = CompanyForm(request.POST)
         if not form.is_valid():
@@ -217,10 +280,11 @@ class CreateCompanyView(View):
         schema = build_unique_slug(company_name)
 
         # 2) crear tenant (schema)
+        #    Puedes dejar trial_ends_at por compatibilidad, pero la lógica real vivirá en Subscription
         cliente = Cliente.objects.create(
             schema_name=schema,
             nombre_compania=company_name,
-            trial_ends_at=timezone.now() + timedelta(days=30),
+            trial_ends_at=timezone.now() + timedelta(days=30),  # opcional/legacy
             email_contacto=email,
         )
 
@@ -236,31 +300,38 @@ class CreateCompanyView(View):
             is_primary=True,
         )
 
-        # 4) crear usuario owner + seed dentro del tenant
+        # 4) crear suscripción TRIAL en PUBLIC (fuente de verdad)
+        #    (esto garantiza que AccountHome y middleware puedan validar estado)
+        create_trial_subscription_for_tenant(
+            tenant=cliente,
+            owner_user=public_user,   # user en public
+            trial_days=30,
+        )
+
+        # 5) crear usuario owner + seed dentro del tenant
         with tenant_context(cliente):
             User = get_user_model()
             username = email
 
-            user, created = User.objects.get_or_create(
+            tenant_user, created = User.objects.get_or_create(
                 email=email,
                 defaults={
-                    "names": user.full_name,
-                    "username": email,
+                    "names": public_user.full_name,
+                    "username": username,
                     "is_active": True,
                     "is_staff": True,
                     "is_superuser": True,
                 },
             )
             if created:
-                user.set_password(password)
-                user.save()
+                tenant_user.set_password(password)
+                tenant_user.save()
 
-            # seed inicial
-            run_initial_tenant_seed(user=user, company_info=form.cleaned_data)
+            run_initial_tenant_seed(user=tenant_user, company_info=form.cleaned_data)
 
         messages.success(
             request,
-            f"Tu compañía {company_name} ha sido creada. Ya puedes acceder a tu espacio."
+            f"Tu compañía {company_name} ha sido creada. Tienes 30 días de prueba gratis 🎉"
         )
         return redirect("account_home")
 

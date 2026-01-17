@@ -1,0 +1,15 @@
+<h2>Billing - {{ tenant }}</h2>
+
+{% if subscription %}
+  <p><b>Estado:</b> {{ subscription.status }}</p>
+  <p><b>Trial end:</b> {{ subscription.trial_end }}</p>
+  <p><b>Periodo end:</b> {{ subscription.current_period_end }}</p>
+  <p><b>Precio:</b> ${{ subscription.monthly_price_cop }} COP</p>
+
+  <form action="{% url 'subscriptions:billing_dummy_pay' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Pagar ahora (Dummy)</button>
+  </form>
+{% else %}
+  <p>No hay suscripción creada para este tenant.</p>
+{% endif %}
